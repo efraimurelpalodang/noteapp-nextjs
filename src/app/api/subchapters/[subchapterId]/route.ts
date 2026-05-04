@@ -3,15 +3,15 @@ import { NextResponse } from 'next/server'
 
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ topicId: string }> }
+  { params }: { params: Promise<{ subchapterId: string }> }
 ) {
-  const { topicId } = await params
+  const { subchapterId } = await params
   const supabase = await createClient()
   const body = await request.json()
   const { data, error } = await supabase
-    .from('topics')
+    .from('subchapters')
     .update(body)
-    .eq('id', topicId)
+    .eq('id', subchapterId)
     .select()
     .single()
 
@@ -24,14 +24,14 @@ export async function PATCH(
 
 export async function DELETE(
   _: Request,
-  { params }: { params: Promise<{ topicId: string }> }
+  { params }: { params: Promise<{ subchapterId: string }> }
 ) {
-  const { topicId } = await params
+  const { subchapterId } = await params
   const supabase = await createClient()
   const { error } = await supabase
-    .from('topics')
+    .from('subchapters')
     .delete()
-    .eq('id', topicId)
+    .eq('id', subchapterId)
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })

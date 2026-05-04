@@ -24,6 +24,14 @@ A knowledge base application built with Next.js, TypeScript, Tailwind CSS, and S
 - [x] Set up API routes for Topic CRUD operations
 - [x] Enable Row Level Security (RLS) for data protection
 
+### Stage 5: Sub-chapters Feature ✅ Done
+- [x] Install `@dnd-kit` for drag & drop functionality
+- [x] Build Topic Detail page with dynamic routing
+- [x] Implement `SubchapterList` with sortable reordering
+- [x] Build `SubchapterCard` and `AddSubchapterForm` components
+- [x] Create API routes for Sub-chapter management
+- [x] Ensure order persistence in Supabase
+
 ## Getting Started
 
 1.  **Clone the repository**

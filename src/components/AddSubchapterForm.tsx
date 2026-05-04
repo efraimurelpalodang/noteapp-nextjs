@@ -12,6 +12,7 @@ interface AddSubchapterFormProps {
 export default function AddSubchapterForm({ topicId }: AddSubchapterFormProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [title, setTitle] = useState('')
+
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)

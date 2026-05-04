@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
-import SubchapterList from '@/components/SubchapterList'
-import AddSubchapterForm from '@/components/AddSubchapterForm'
-import Link from 'next/link'
+import TopicSearchWrapper from '@/components/TopicSearchWrapper'
 import { notFound } from 'next/navigation'
+import { Info, ChevronRight } from 'lucide-react'
+import Link from 'next/link'
 
 export default async function TopicDetailPage({
   params,
@@ -12,10 +12,9 @@ export default async function TopicDetailPage({
   const { topicId } = await params
   const supabase = await createClient()
 
-  // Fetch topic details
   const { data: topic } = await supabase
     .from('topics')
-    .select('*')
+    .select('*, subchapters(*)')
     .eq('id', topicId)
     .single()
 
@@ -23,53 +22,40 @@ export default async function TopicDetailPage({
     notFound()
   }
 
-  // Fetch subchapters ordered by 'order'
-  const { data: subchapters } = await supabase
-    .from('subchapters')
-    .select('*')
-    .eq('topic_id', topicId)
-    .order('order', { ascending: true })
+  const subchapters = topic.subchapters || []
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
-      <div className="flex flex-col gap-8">
-        {/* Breadcrumbs */}
-        <nav className="flex items-center gap-2 text-sm text-slate-500">
-          <Link href="/" className="hover:text-indigo-400 transition-colors">
-            Dashboard
-          </Link>
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-          <span className="text-slate-300 truncate">{topic.title}</span>
-        </nav>
-
-        {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-800 pb-8">
-          <div>
-            <h1 className="text-4xl font-extrabold text-white tracking-tight">
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 sm:py-16">
+      <div className="flex flex-col gap-10">
+        {/* Header Section with Breadcrumbs beside Title using justify-between */}
+        <div className="space-y-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-baseline sm:justify-between">
+            <h1 className="text-4xl font-black text-foreground tracking-tight sm:text-5xl">
               {topic.title}
             </h1>
-            <p className="mt-2 text-lg text-slate-400">
-              {topic.description || 'Manage sub-chapters for this topic.'}
-            </p>
-          </div>
-          <AddSubchapterForm topicId={topicId} />
-        </div>
-
-        {/* Sub-chapters Section */}
-        <div className="flex flex-col gap-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-white">Sub-chapters</h2>
-            <span className="text-sm text-slate-500">
-              {subchapters?.length || 0} items
-            </span>
+            
+            {/* Breadcrumbs on the far right, non-bold */}
+            <nav className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground/40 shrink-0 mb-1">
+              <Link href="/" className="hover:text-primary transition-colors">
+                Beranda
+              </Link>
+              <ChevronRight className="h-2.5 w-2.5" />
+              <span className="text-muted-foreground/30">Detail Topik</span>
+            </nav>
           </div>
           
-          <SubchapterList 
-            initialSubchapters={subchapters ?? []} 
-            topicId={topicId} 
-          />
+          <p className="text-lg text-muted-foreground/60 leading-relaxed font-medium max-w-3xl">
+            {topic.description || 'Jelajahi koleksi materi pelajaran dan catatan penelitian yang dikurasi.'}
+          </p>
+        </div>
+
+        {/* Search & List Wrapper */}
+        <TopicSearchWrapper subchapters={subchapters} topicId={topicId} />
+
+        {/* Footer Info */}
+        <div className="pt-8 flex items-center justify-center gap-2 text-muted-foreground/30 border-t">
+          <Info className="h-4 w-4" />
+          <span className="text-xs font-bold uppercase tracking-tighter">Database Penelitian StudyNote • 2026</span>
         </div>
       </div>
     </div>

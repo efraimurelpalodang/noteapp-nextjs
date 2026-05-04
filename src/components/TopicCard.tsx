@@ -6,6 +6,19 @@ import { createClient } from '@/lib/supabase/client'
 import { Topic } from '@/lib/types'
 import Link from 'next/link'
 import ConfirmDialog from './ConfirmDialog'
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Pencil, Trash2, BookOpen, Calendar } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 
 interface TopicCardProps {
   topic: Topic
@@ -56,88 +69,117 @@ export default function TopicCard({ topic }: TopicCardProps) {
 
   if (isEditing) {
     return (
-      <div className="rounded-2xl bg-slate-800/50 p-6 border border-indigo-500/50 shadow-2xl animate-in fade-in duration-300">
-        <form onSubmit={handleUpdate} className="space-y-4">
-          <input
-            type="text"
-            required
-            className="block w-full rounded-lg border border-slate-700 bg-slate-900/50 px-4 py-2 text-white focus:border-indigo-500 focus:outline-hidden"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          <textarea
-            rows={2}
-            className="block w-full rounded-lg border border-slate-700 bg-slate-900/50 px-4 py-2 text-white focus:border-indigo-500 focus:outline-hidden resize-none"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-          <div className="flex justify-end gap-3">
-            <button
+      <Card className="border-primary/20 shadow-none animate-in fade-in duration-300">
+        <form onSubmit={handleUpdate}>
+          <CardHeader className="p-6 space-y-4">
+            <div className="space-y-1">
+              <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
+                Judul Topik
+              </label>
+              <Input
+                required
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="bg-muted/50"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
+                Deskripsi
+              </label>
+              <Textarea
+                rows={2}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="bg-muted/50 resize-none"
+              />
+            </div>
+          </CardHeader>
+          <CardFooter className="flex justify-end gap-2 p-6 border-t bg-muted/5">
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setIsEditing(false)}
-              className="text-sm font-medium text-slate-400 hover:text-white px-2 py-1"
+              className="cursor-pointer"
             >
-              Cancel
-            </button>
-            <button
+              Batal
+            </Button>
+            <Button
               type="submit"
+              size="sm"
               disabled={loading}
-              className="rounded-lg bg-indigo-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
+              className="cursor-pointer"
             >
-              {loading ? 'Saving...' : 'Save Changes'}
-            </button>
-          </div>
+              {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
+            </Button>
+          </CardFooter>
         </form>
-      </div>
+      </Card>
     )
   }
 
   return (
-    <div className="group relative rounded-2xl bg-slate-800/30 p-6 border border-slate-800 hover:border-slate-700 hover:bg-slate-800/50 transition-all duration-300 shadow-lg">
-      <div className="flex items-start justify-between">
+    <>
+      <Card className="group flex flex-col h-full border-border/50 transition-all duration-300 overflow-hidden bg-card/50 backdrop-blur-xs shadow-none">
         <Link href={`/topics/${topic.id}`} className="flex-1">
-          <h3 className="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors">
-            {topic.title}
-          </h3>
-          <p className="mt-2 text-sm text-slate-400 line-clamp-2">
-            {topic.description || 'No description provided.'}
-          </p>
-          <div className="mt-4 flex items-center gap-2">
-            <span className="inline-flex items-center rounded-full bg-indigo-500/10 px-2.5 py-0.5 text-xs font-medium text-indigo-400 border border-indigo-500/20">
-              {subchapterCount} {subchapterCount === 1 ? 'subchapter' : 'subchapters'}
-            </span>
-          </div>
+          <CardHeader>
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-1.5 min-w-0">
+                <CardTitle className="text-xl font-bold tracking-tight truncate transition-colors">
+                  {topic.title}
+                </CardTitle>
+                <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
+                  <Calendar className="h-3 w-3" />
+                  {new Date(topic.created_at).toLocaleDateString()}
+                </div>
+              </div>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <BookOpen className="h-5 w-5" />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <CardDescription className="text-sm line-clamp-3 leading-relaxed text-muted-foreground/80">
+              {topic.description || 'Tidak ada deskripsi untuk topik ini.'}
+            </CardDescription>
+          </CardContent>
         </Link>
-        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={() => setIsEditing(true)}
-            className="p-2 text-slate-400 hover:text-indigo-400 transition-colors"
-            title="Edit topic"
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-          </button>
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            className="p-2 text-slate-400 hover:text-red-400 transition-colors"
-            title="Delete topic"
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
-        </div>
-      </div>
+        <CardFooter className="flex items-center justify-between border-t bg-muted/20 py-3 mt-auto px-6">
+          <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10">
+            {subchapterCount} {subchapterCount === 1 ? 'sub-bab' : 'sub-bab'}
+          </Badge>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsEditing(true)}
+              className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary cursor-pointer"
+              title="Edit topik"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive cursor-pointer"
+              title="Hapus topik"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}
-        title="Delete Topic"
-        message={`Are you sure you want to delete "${topic.title}" and all its subchapters? This action cannot be undone.`}
-        confirmLabel={loading ? 'Deleting...' : 'Delete'}
+        title="Hapus Topik"
+        message={`Apakah Anda yakin ingin menghapus "${topic.title}"? Semua sub-bab dan catatan di dalamnya juga akan terhapus secara permanen.`}
+        confirmLabel={loading ? 'Menghapus...' : 'Hapus Topik'}
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteConfirm(false)}
       />
-    </div>
+    </>
   )
 }

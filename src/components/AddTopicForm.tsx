@@ -3,6 +3,11 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import Modal from './Modal'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { PlusCircle, Sparkles } from 'lucide-react'
 
 export default function AddTopicForm() {
   const [isOpen, setIsOpen] = useState(false)
@@ -21,7 +26,7 @@ export default function AddTopicForm() {
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
-      setError('You must be logged in to create a topic')
+      setError('Anda harus masuk untuk membuat topik')
       setLoading(false)
       return
     }
@@ -44,75 +49,74 @@ export default function AddTopicForm() {
     }
   }
 
-  if (!isOpen) {
-    return (
-      <button
-        onClick={() => setIsOpen(true)}
-        className="group flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
-      >
-        <svg className="h-5 w-5 transition-transform group-hover:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-        </svg>
-        New Topic
-      </button>
-    )
-  }
-
   return (
-    <div className="w-full max-w-2xl rounded-2xl bg-slate-800/50 p-6 shadow-2xl backdrop-blur-xl border border-slate-700 animate-in fade-in zoom-in duration-300">
-      <h3 className="text-xl font-bold text-white mb-4">Create New Topic</h3>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {error && (
-          <div className="rounded-md bg-red-500/10 p-3 text-sm text-red-400 border border-red-500/20">
-            {error}
-          </div>
-        )}
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="title" className="block text-sm font-medium text-slate-400 mb-1">
-              Title
+    <>
+      <Button 
+        onClick={() => setIsOpen(true)}
+        className="gap-2 rounded-xl shadow-none hover:bg-primary/100 active:scale-95 cursor-pointer"
+      >
+        <PlusCircle className="h-5 w-5" />
+        Topik Baru
+      </Button>
+
+      <Modal 
+        isOpen={isOpen} 
+        onClose={() => setIsOpen(false)} 
+        title="Buat Topik Baru"
+      >
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-4 text-xs font-medium text-destructive animate-in fade-in slide-in-from-top-1">
+              {error}
+            </div>
+          )}
+          
+          <div className="space-y-2">
+            <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold px-1 flex items-center gap-1.5">
+              <Sparkles className="h-3 w-3 text-primary" />
+              Judul Topik
             </label>
-            <input
-              id="title"
-              type="text"
+            <Input
               required
-              className="block w-full rounded-lg border border-slate-700 bg-slate-900/50 px-4 py-2.5 text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 transition-all"
-              placeholder="e.g. Modern Web Development"
+              autoFocus
+              className="h-12 rounded-xl border-border bg-muted/30 px-4 focus-visible:ring-primary/20 transition-all"
+              placeholder="contoh: Pengembangan Web Modern"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-slate-400 mb-1">
-              Description (Optional)
+
+          <div className="space-y-2">
+            <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold px-1">
+              Deskripsi (Opsional)
             </label>
-            <textarea
-              id="description"
-              rows={3}
-              className="block w-full rounded-lg border border-slate-700 bg-slate-900/50 px-4 py-2.5 text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 transition-all resize-none"
-              placeholder="Briefly describe what this topic covers..."
+            <Textarea
+              className="min-h-[120px] rounded-xl border-border bg-muted/30 px-4 py-3 focus-visible:ring-primary/20 resize-none transition-all leading-relaxed"
+              placeholder="Tentang apa topik ini?"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
-        </div>
-        <div className="flex items-center justify-end gap-3 pt-2">
-          <button
-            type="button"
-            onClick={() => setIsOpen(false)}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-slate-400 hover:text-white transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-lg bg-indigo-600 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50 transition-all shadow-lg shadow-indigo-500/20"
-          >
-            {loading ? 'Creating...' : 'Create Topic'}
-          </button>
-        </div>
-      </form>
-    </div>
+
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setIsOpen(false)}
+              className="rounded-xl font-medium cursor-pointer"
+            >
+              Batal
+            </Button>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="rounded-xl font-bold px-8 shadow-none cursor-pointer"
+            >
+              {loading ? 'Membuat...' : 'Buat Topik'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+    </>
   )
 }

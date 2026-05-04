@@ -17,6 +17,13 @@ A knowledge base application built with Next.js, TypeScript, Tailwind CSS, and S
 - [x] Build Login and Register pages
 - [x] Add Logout functionality in Navbar
 
+### Stage 4: Topics Feature ✅ Done
+- [x] Create shared TypeScript types for Topic and Subchapter
+- [x] Build Topics dashboard with Server Components
+- [x] Implement interactive `TopicCard` and `AddTopicForm`
+- [x] Set up API routes for Topic CRUD operations
+- [x] Enable Row Level Security (RLS) for data protection
+
 ## Getting Started
 
 1.  **Clone the repository**

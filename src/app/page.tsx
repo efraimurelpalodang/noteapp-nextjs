@@ -2,47 +2,119 @@ import { createClient } from '@/lib/supabase/server'
 import TopicCard from '@/components/TopicCard'
 import AddTopicForm from '@/components/AddTopicForm'
 import { Topic } from '@/lib/types'
+import { FolderPlus, Search, SlidersHorizontal } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination'
 
-export default async function HomePage() {
+export default async function HomePage({ searchParams }: { searchParams: { page?: string } }) {
   const supabase = await createClient()
   
-  const { data: topics } = await supabase
+  const page = Number(searchParams?.page) || 1
+  const limit = 6
+  const start = (page - 1) * limit
+  const end = start + limit - 1
+
+  const { data: topics, count } = await supabase
     .from('topics')
-    .select('*, subchapters(count)')
+    .select('*, subchapters(count)', { count: 'exact' })
     .order('created_at', { ascending: false })
+    .range(start, end)
+
+  const totalPages = Math.ceil((count || 0) / limit)
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <div className="flex flex-col gap-10">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-4xl font-extrabold text-white tracking-tight">
-              My Knowledge Base
-            </h1>
-            <p className="mt-2 text-lg text-slate-400">
-              Manage your topics and study notes
-            </p>
-          </div>
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8 bg-white dark:bg-slate-950 min-h-screen">
+      <div className="flex flex-col gap-8">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+            Publications
+          </h1>
           <AddTopicForm />
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-slate-400" />
+          </div>
+          <Input 
+            type="text" 
+            placeholder="Search research database..." 
+            className="pl-10 py-6 bg-transparent border-slate-200 dark:border-slate-800 rounded-xl text-base shadow-sm focus-visible:ring-1 focus-visible:ring-indigo-500"
+          />
+        </div>
+
+        <div className="flex flex-col">
+          <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest pb-4 border-b border-slate-100 dark:border-slate-800">
+            <span>Latest Entries ({count || 0})</span>
+            <button className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 hover:opacity-80 transition-opacity">
+              <SlidersHorizontal className="h-4 w-4" />
+              Refine
+            </button>
+          </div>
+
+          <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-800">
           {topics && topics.length > 0 ? (
             topics.map((topic: any) => (
               <TopicCard key={topic.id} topic={topic as Topic} />
             ))
           ) : (
-            <div className="col-span-full flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-800 py-20 text-center">
-              <div className="rounded-full bg-slate-800/50 p-4 mb-4">
-                <svg className="h-10 w-10 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
+            <div className="col-span-full flex flex-col items-center justify-center rounded-[2rem] border-2 border-dashed border-muted bg-muted/5 py-24 px-6 text-center animate-in fade-in zoom-in duration-500">
+              <div className="rounded-2xl bg-muted/50 p-6 mb-6 shadow-inner transition-transform hover:scale-110">
+                <FolderPlus className="h-12 w-12 text-muted-foreground/60" />
               </div>
-              <h3 className="text-xl font-semibold text-white">No topics yet</h3>
-              <p className="mt-2 text-slate-400">Create your first topic to get started.</p>
+              <h3 className="text-2xl font-bold text-foreground">Rak Anda masih kosong</h3>
+              <p className="mt-2 text-muted-foreground max-w-sm mx-auto leading-relaxed">
+                Mulai bangun basis pengetahuan Anda dengan membuat topik belajar pertama Anda.
+              </p>
+              <div className="mt-8">
+                <AddTopicForm />
+              </div>
             </div>
           )}
+          </div>
         </div>
+
+        {/* Pagination Section */}
+        {totalPages > 1 && (
+          <div className="mt-8">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    href={page > 1 ? `/?page=${page - 1}` : '#'} 
+                    className={page <= 1 ? 'pointer-events-none opacity-50' : ''}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: totalPages }).map((_, i) => (
+                  <PaginationItem key={i}>
+                    <PaginationLink 
+                      href={`/?page=${i + 1}`}
+                      isActive={page === i + 1}
+                    >
+                      {i + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+
+                <PaginationItem>
+                  <PaginationNext 
+                    href={page < totalPages ? `/?page=${page + 1}` : '#'}
+                    className={page >= totalPages ? 'pointer-events-none opacity-50' : ''}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
       </div>
     </div>
   )

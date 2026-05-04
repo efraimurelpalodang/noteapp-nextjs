@@ -6,6 +6,9 @@ import { createClient } from '@/lib/supabase/client'
 import { Topic } from '@/lib/types'
 import Link from 'next/link'
 import ConfirmDialog from './ConfirmDialog'
+import { Pencil, Trash2, Calendar, FileText } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 
 interface TopicCardProps {
   topic: Topic
@@ -56,35 +59,46 @@ export default function TopicCard({ topic }: TopicCardProps) {
 
   if (isEditing) {
     return (
-      <div className="rounded-2xl bg-slate-800/50 p-6 border border-indigo-500/50 shadow-2xl animate-in fade-in duration-300">
+      <div className="py-6 border-b border-slate-100 dark:border-slate-800 animate-in fade-in duration-300">
         <form onSubmit={handleUpdate} className="space-y-4">
-          <input
-            type="text"
-            required
-            className="block w-full rounded-lg border border-slate-700 bg-slate-900/50 px-4 py-2 text-white focus:border-indigo-500 focus:outline-hidden"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          <textarea
-            rows={2}
-            className="block w-full rounded-lg border border-slate-700 bg-slate-900/50 px-4 py-2 text-white focus:border-indigo-500 focus:outline-hidden resize-none"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-          <div className="flex justify-end gap-3">
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">
+                Judul Topik
+              </label>
+              <Input
+                required
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="bg-slate-50 dark:bg-slate-900 border-none"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">
+                Deskripsi
+              </label>
+              <Textarea
+                rows={2}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="bg-slate-50 dark:bg-slate-900 border-none resize-none"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"
               onClick={() => setIsEditing(false)}
-              className="text-sm font-medium text-slate-400 hover:text-white px-2 py-1"
+              className="text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
-              Cancel
+              Batal
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="rounded-lg bg-indigo-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
+              className="text-sm font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
             >
-              {loading ? 'Saving...' : 'Save Changes'}
+              {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
             </button>
           </div>
         </form>
@@ -93,51 +107,65 @@ export default function TopicCard({ topic }: TopicCardProps) {
   }
 
   return (
-    <div className="group relative rounded-2xl bg-slate-800/30 p-6 border border-slate-800 hover:border-slate-700 hover:bg-slate-800/50 transition-all duration-300 shadow-lg">
-      <div className="flex items-start justify-between">
-        <Link href={`/topics/${topic.id}`} className="flex-1">
-          <h3 className="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors">
-            {topic.title}
-          </h3>
-          <p className="mt-2 text-sm text-slate-400 line-clamp-2">
-            {topic.description || 'No description provided.'}
-          </p>
-          <div className="mt-4 flex items-center gap-2">
-            <span className="inline-flex items-center rounded-full bg-indigo-500/10 px-2.5 py-0.5 text-xs font-medium text-indigo-400 border border-indigo-500/20">
-              {subchapterCount} {subchapterCount === 1 ? 'subchapter' : 'subchapters'}
+    <>
+      <div className="py-6 border-b border-slate-100 dark:border-slate-800 group relative flex flex-col gap-3 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors -mx-4 px-4 rounded-xl sm:mx-0 sm:px-0 sm:hover:bg-transparent sm:rounded-none">
+        <div className="flex items-start justify-between gap-4">
+          <Link href={`/topics/${topic.id}`} className="block flex-1">
+            <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white leading-tight mb-1 pr-12">
+              {topic.title}
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
+              {topic.description || 'Tidak ada deskripsi'}
+            </p>
+          </Link>
+          
+          <div className="flex items-center gap-3 absolute right-4 sm:right-0 top-6">
+            <button
+              onClick={() => setIsEditing(true)}
+              className="text-black dark:text-white hover:opacity-70 transition-opacity cursor-pointer p-1"
+              title="Edit topik"
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="text-black dark:text-white hover:opacity-70 transition-opacity cursor-pointer p-1"
+              title="Hapus topik"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        <Link href={`/topics/${topic.id}`} className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400">
+              {subchapterCount} {subchapterCount === 1 ? 'Sub-bab' : 'Sub-bab'}
             </span>
           </div>
+
+          <div className="flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400 font-medium tracking-wide">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="h-3.5 w-3.5" />
+              {new Date(topic.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            </div>
+            <span>•</span>
+            <div className="flex items-center gap-1.5">
+              <FileText className="h-3.5 w-3.5" />
+              Note
+            </div>
+          </div>
         </Link>
-        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={() => setIsEditing(true)}
-            className="p-2 text-slate-400 hover:text-indigo-400 transition-colors"
-            title="Edit topic"
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-          </button>
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            className="p-2 text-slate-400 hover:text-red-400 transition-colors"
-            title="Delete topic"
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
-        </div>
       </div>
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}
-        title="Delete Topic"
-        message={`Are you sure you want to delete "${topic.title}" and all its subchapters? This action cannot be undone.`}
-        confirmLabel={loading ? 'Deleting...' : 'Delete'}
+        title="Hapus Topik"
+        message={`Apakah Anda yakin ingin menghapus "${topic.title}"? Semua sub-bab dan catatan di dalamnya juga akan terhapus secara permanen.`}
+        confirmLabel={loading ? 'Menghapus...' : 'Hapus Topik'}
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteConfirm(false)}
       />
-    </div>
+    </>
   )
 }

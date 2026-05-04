@@ -1,31 +1,64 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Subchapter } from '@/lib/types'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import ConfirmDialog from './ConfirmDialog'
+import { Button } from '@/components/ui/button'
+import { Card, CardHeader } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Calendar,
+  Clock,
+  GripVertical
+} from 'lucide-react'
+import Link from 'next/link'
+import { cn } from '@/lib/utils'
 
 interface SubchapterCardProps {
   subchapter: Subchapter
   topicId: string
   isOpen: boolean
   onToggle: () => void
+  userEmail: string
 }
 
-export default function SubchapterCard({ 
-  subchapter, 
-  topicId, 
-  isOpen, 
-  onToggle 
+function getRelativeTime(date: string) {
+  const now = new Date()
+  const created = new Date(date)
+  const diffInMs = now.getTime() - created.getTime()
+  const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60))
+  const diffInDays = Math.floor(diffInHours / 24)
+
+  if (diffInHours < 1) {
+    return 'Baru saja'
+  }
+  if (diffInHours < 24) {
+    return `${diffInHours} jam yang lalu`
+  }
+  if (diffInDays === 1) {
+    return 'Kemarin'
+  }
+  return `${diffInDays} hari yang lalu`
+}
+
+export default function SubchapterCard({
+  subchapter,
+  topicId,
+  isOpen,
+  onToggle,
+  userEmail
 }: SubchapterCardProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [title, setTitle] = useState(subchapter.title)
   const [content, setContent] = useState(subchapter.content ?? '')
   const [loading, setLoading] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -43,6 +76,14 @@ export default function SubchapterCard({
     transition,
     zIndex: isDragging ? 10 : 1,
   }
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (isEditing && textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+    }
+  }, [isEditing, content])
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -78,44 +119,57 @@ export default function SubchapterCard({
 
   if (isEditing) {
     return (
-      <div 
-        ref={setNodeRef} 
+      <Card
+        ref={setNodeRef}
         style={style}
-        className="rounded-xl bg-slate-800 p-4 border border-indigo-500/50 shadow-xl"
+        className="border-primary/30 shadow-xl overflow-hidden animate-in fade-in duration-300"
       >
-        <form onSubmit={handleUpdate} className="space-y-4">
-          <input
-            type="text"
-            required
-            autoFocus
-            className="block w-full rounded-lg border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-hidden"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          <textarea
-            className="block w-full rounded-lg border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-hidden min-h-[150px] resize-y"
-            placeholder="Notes (optional)..."
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-          />
-          <div className="flex justify-end gap-2">
-            <button
+        <form onSubmit={handleUpdate}>
+          <CardHeader className="p-6 space-y-4">
+            <div className="space-y-1">
+              <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold px-1">
+                Judul Sub-bab
+              </label>
+              <Input
+                required
+                autoFocus
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="bg-muted/30 h-12 text-lg font-bold"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold px-1">
+                Catatan
+              </label>
+              <Textarea
+                ref={textareaRef}
+                className="min-h-[100px] bg-muted/30 resize-none leading-relaxed text-base overflow-hidden"
+                placeholder="Tulis catatan Anda di sini..."
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+              />
+            </div>
+          </CardHeader>
+          <div className="flex items-center justify-end gap-3 bg-muted/30 p-4 border-t">
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setIsEditing(false)}
-              className="text-xs font-medium text-slate-400 hover:text-white px-2 py-1"
+              className="rounded-xl"
             >
-              Cancel
-            </button>
-            <button
+              Batal
+            </Button>
+            <Button
               type="submit"
               disabled={loading}
-              className="rounded-md bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
+              className="rounded-xl px-8"
             >
-              {loading ? 'Saving...' : 'Save Changes'}
-            </button>
+              {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
+            </Button>
           </div>
         </form>
-      </div>
+      </Card>
     )
   }
 
@@ -123,82 +177,93 @@ export default function SubchapterCard({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex flex-col gap-3 rounded-xl bg-slate-800/30 border border-slate-800 transition-all duration-300 ${
-        isOpen ? 'ring-1 ring-indigo-500/30 bg-slate-800/50 border-indigo-500/20 shadow-lg' : 'hover:border-slate-700 hover:bg-slate-800/40'
-      } ${isDragging ? 'opacity-50' : ''}`}
+      className={cn(
+        "group flex flex-col rounded-2xl border bg-card transition-all duration-300 shadow-sm",
+        isOpen ? "ring-2 ring-primary/10 border-primary/20" : "",
+        isDragging && "opacity-50"
+      )}
     >
-      <div className="flex items-center gap-3 p-4">
-        <button
+      {/* Header Area with Date and Drag Handle */}
+      <div className="flex items-center justify-between px-6 pt-6 pb-2">
+        <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wider">
+          <Calendar className="h-3.5 w-3.5" />
+          {new Date(subchapter.created_at).toLocaleDateString()}
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing p-1 text-slate-600 hover:text-slate-400 transition-colors"
-          title="Drag to reorder"
+          className="h-8 w-8 cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-primary transition-colors"
+          title="Geser untuk mengatur ulang"
         >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-          </svg>
-        </button>
+          <GripVertical className="h-4 w-4" />
+        </Button>
+      </div>
 
+      {/* Title and Action area */}
+      <div className="px-6 pb-2">
         <button
           onClick={onToggle}
-          className="flex-1 min-w-0 text-left flex items-center justify-between group"
+          className="group/title text-left block w-full"
         >
-          <h4 className={`text-sm font-medium transition-colors truncate ${
-            isOpen ? 'text-indigo-400' : 'text-slate-200 group-hover:text-white'
-          }`}>
+          <h4 className={cn(
+            "text-2xl font-bold tracking-tight transition-colors leading-tight",
+            isOpen ? "text-primary" : "text-foreground"
+          )}>
             {subchapter.title}
           </h4>
-          <svg 
-            className={`h-4 w-4 text-slate-500 transition-transform duration-300 ${isOpen ? 'rotate-180 text-indigo-400' : ''}`} 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
+          <p className="mt-1 text-sm text-muted-foreground/60 font-medium">
+            Subject Note, {userEmail || 'User'}
+          </p>
         </button>
+      </div>
 
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setIsEditing(true)}
-            className="p-1.5 text-slate-500 hover:text-indigo-400 transition-colors"
-            title="Edit"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-          </button>
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            className="p-1.5 text-slate-500 hover:text-red-400 transition-colors"
-            title="Delete"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
+      {/* Content Area */}
+      <div className="px-6 py-4">
+        <div className={cn(
+          "prose prose-sm dark:prose-invert max-w-none transition-all duration-300",
+          !isOpen && "line-clamp-2 text-muted-foreground/80"
+        )}>
+          {subchapter.content ? (
+            <p className={cn(
+              "leading-relaxed whitespace-pre-wrap",
+              isOpen ? "text-foreground" : "text-muted-foreground/80"
+            )}>
+              {subchapter.content}
+            </p>
+          ) : (
+            <p className="italic text-muted-foreground/40">Tidak ada catatan untuk bagian ini.</p>
+          )}
         </div>
       </div>
 
-      {isOpen && (
-        <div className="px-12 pb-6 animate-in fade-in slide-in-from-top-2 duration-300">
-          <div className="rounded-xl bg-slate-900/50 p-6 border border-slate-800/50 prose prose-invert prose-sm max-w-none">
-            {subchapter.content ? (
-              <p className="text-slate-300 whitespace-pre-wrap leading-relaxed">
-                {subchapter.content}
-              </p>
-            ) : (
-              <p className="text-slate-500 italic">No notes provided for this sub-chapter.</p>
-            )}
+      {/* Footer / Stats and Actions */}
+      <div className="px-6 py-5 border-t mt-2 flex items-center justify-between bg-muted/5 rounded-b-2xl">
+        <div className="flex items-center gap-6 text-muted-foreground/60">
+          <div className="flex items-center gap-1.5 cursor-default">
+            <Clock className="h-4 w-4" />
+            <span className="text-[11px] font-bold">
+              {getRelativeTime(subchapter.created_at)}
+            </span>
           </div>
         </div>
-      )}
+
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/topics/${topicId}/${subchapter.id}`}
+            className="bg-black dark:bg-white text-white dark:text-black text-xs uppercase tracking-widest px-6 py-2 rounded-lg transition-none"
+          >
+            Detail
+          </Link>
+        </div>
+      </div>
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}
-        title="Delete Sub-chapter"
-        message={`Are you sure you want to delete "${subchapter.title}"? This action cannot be undone.`}
-        confirmLabel={loading ? 'Deleting...' : 'Delete'}
+        title="Hapus Catatan"
+        message={`Apakah Anda yakin ingin menghapus "${subchapter.title}"? Tindakan ini tidak dapat dibatalkan.`}
+        confirmLabel={loading ? 'Menghapus...' : 'Hapus'}
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteConfirm(false)}
       />

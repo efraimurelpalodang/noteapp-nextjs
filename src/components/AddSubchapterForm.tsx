@@ -4,6 +4,10 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Modal from './Modal'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Plus, BookMarked, Sparkles } from 'lucide-react'
 
 interface AddSubchapterFormProps {
   topicId: string
@@ -27,7 +31,7 @@ export default function AddSubchapterForm({ topicId }: AddSubchapterFormProps) {
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
-      setError('You must be logged in')
+      setError('Anda harus masuk terlebih dahulu')
       setLoading(false)
       return
     }
@@ -60,70 +64,71 @@ export default function AddSubchapterForm({ topicId }: AddSubchapterFormProps) {
 
   return (
     <>
-      <button
+      <Button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 transition-colors border border-slate-700 shadow-lg shadow-slate-900/20"
+        variant="secondary"
+        className="gap-2 rounded-xl shadow-none hover:bg-secondary/100 active:scale-95 cursor-pointer"
       >
-        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-        </svg>
-        New Sub-chapter
-      </button>
+        <Plus className="h-5 w-5" />
+        Tambah Sub-bab Baru
+      </Button>
 
       <Modal 
         isOpen={isOpen} 
         onClose={() => setIsOpen(false)} 
-        title="Create New Sub-chapter"
+        title="Tambah Sub-bab Baru"
       >
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-xs text-red-400">
+            <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-4 text-xs font-medium text-destructive animate-in fade-in slide-in-from-top-1">
               {error}
             </div>
           )}
           
           <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold px-1">
-              Title
+            <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold px-1 flex items-center gap-1.5">
+              <Sparkles className="h-3 w-3 text-primary" />
+              Judul Sub-bab
             </label>
-            <input
-              type="text"
+            <Input
               required
               autoFocus
-              className="block w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 focus:outline-hidden transition-all"
-              placeholder="e.g. Introduction to Physics"
+              className="h-12 rounded-xl border-border bg-muted/30 px-4 focus-visible:ring-primary/20 transition-all"
+              placeholder="contoh: Konsep Dasar"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold px-1">
-              Initial Notes (Optional)
+            <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold px-1 flex items-center gap-1.5">
+              <BookMarked className="h-3 w-3 text-primary" />
+              Catatan Awal (Opsional)
             </label>
-            <textarea
-              className="block w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 focus:outline-hidden min-h-[150px] resize-none transition-all"
-              placeholder="Start writing your notes..."
+            <Textarea
+              className="min-h-[180px] rounded-xl border-border bg-muted/30 px-4 py-3 focus-visible:ring-primary/20 resize-none transition-all leading-relaxed"
+              placeholder="Mulai menulis catatan belajar Anda..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
             />
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-2">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setIsOpen(false)}
-              className="rounded-xl px-4 py-2 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition-all"
+              className="rounded-xl font-medium cursor-pointer"
             >
-              Cancel
-            </button>
-            <button
+              Batal
+            </Button>
+            <Button
               type="submit"
               disabled={loading}
-              className="rounded-xl bg-indigo-600 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50 transition-all shadow-lg shadow-indigo-900/20"
+              className="rounded-xl font-bold px-8 shadow-none cursor-pointer"
             >
-              {loading ? 'Creating...' : 'Create Sub-chapter'}
-            </button>
+              {loading ? 'Menambahkan...' : 'Tambah Sub-bab'}
+            </Button>
           </div>
         </form>
       </Modal>

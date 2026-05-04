@@ -11,11 +11,12 @@ import { Button } from '@/components/ui/button'
 import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { 
-  GripVertical, 
+import {
   Calendar,
-  Clock
+  Clock,
+  GripVertical
 } from 'lucide-react'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
 interface SubchapterCardProps {
@@ -45,10 +46,10 @@ function getRelativeTime(date: string) {
   return `${diffInDays} hari yang lalu`
 }
 
-export default function SubchapterCard({ 
-  subchapter, 
-  topicId, 
-  isOpen, 
+export default function SubchapterCard({
+  subchapter,
+  topicId,
+  isOpen,
   onToggle,
   userEmail
 }: SubchapterCardProps) {
@@ -118,8 +119,8 @@ export default function SubchapterCard({
 
   if (isEditing) {
     return (
-      <Card 
-        ref={setNodeRef} 
+      <Card
+        ref={setNodeRef}
         style={style}
         className="border-primary/30 shadow-xl overflow-hidden animate-in fade-in duration-300"
       >
@@ -249,18 +250,12 @@ export default function SubchapterCard({
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            className="text-slate-500 hover:text-slate-700 font-medium text-xs uppercase tracking-widest px-4 transition-colors"
+          <Link
+            href={`/topics/${topicId}/${subchapter.id}`}
+            className="bg-black dark:bg-white text-white dark:text-black text-xs uppercase tracking-widest px-6 py-2 rounded-lg transition-none"
           >
-            Hapus
-          </button>
-          <button
-            onClick={() => setIsEditing(true)}
-            className="bg-blue-600 text-white font-bold text-xs uppercase tracking-widest px-6 py-2 rounded-lg transition-all active:scale-95"
-          >
-            Edit
-          </button>
+            Detail
+          </Link>
         </div>
       </div>
 

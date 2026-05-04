@@ -55,24 +55,24 @@ export default function SubchapterList({ initialSubchapters, topicId }: Subchapt
     if (over && active.id !== over.id) {
       const oldIndex = subchapters.findIndex((s) => s.id === active.id)
       const newIndex = subchapters.findIndex((s) => s.id === over.id)
-      
+
       const reordered = arrayMove(subchapters, oldIndex, newIndex)
-      
+
       // Optimistic update
       setSubchapters(reordered)
 
       // Persist to Supabase
       try {
-        const updates = reordered.map((s, index) => 
+        const updates = reordered.map((s, index) =>
           supabase
             .from('subchapters')
             .update({ order: index })
             .eq('id', s.id)
         )
-        
+
         const results = await Promise.all(updates)
         const errors = results.filter(r => r.error)
-        
+
         if (errors.length > 0) {
           console.error('Failed to persist new order', errors)
         }

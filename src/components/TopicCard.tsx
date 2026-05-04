@@ -6,17 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Topic } from '@/lib/types'
 import Link from 'next/link'
 import ConfirmDialog from './ConfirmDialog'
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Pencil, Trash2, BookOpen, Calendar } from 'lucide-react'
+import { Pencil, Trash2, Calendar, FileText } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 
@@ -69,108 +59,104 @@ export default function TopicCard({ topic }: TopicCardProps) {
 
   if (isEditing) {
     return (
-      <Card className="border-primary/20 shadow-none animate-in fade-in duration-300">
-        <form onSubmit={handleUpdate}>
-          <CardHeader className="p-6 space-y-4">
+      <div className="py-6 border-b border-slate-100 dark:border-slate-800 animate-in fade-in duration-300">
+        <form onSubmit={handleUpdate} className="space-y-4">
+          <div className="space-y-4">
             <div className="space-y-1">
-              <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
+              <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">
                 Judul Topik
               </label>
               <Input
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="bg-muted/50"
+                className="bg-slate-50 dark:bg-slate-900 border-none"
               />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
+              <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">
                 Deskripsi
               </label>
               <Textarea
                 rows={2}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="bg-muted/50 resize-none"
+                className="bg-slate-50 dark:bg-slate-900 border-none resize-none"
               />
             </div>
-          </CardHeader>
-          <CardFooter className="flex justify-end gap-2 p-6 border-t bg-muted/5">
-            <Button
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button
               type="button"
-              variant="ghost"
-              size="sm"
               onClick={() => setIsEditing(false)}
-              className="cursor-pointer"
+              className="text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
               Batal
-            </Button>
-            <Button
+            </button>
+            <button
               type="submit"
-              size="sm"
               disabled={loading}
-              className="cursor-pointer"
+              className="text-sm font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
             >
               {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
-            </Button>
-          </CardFooter>
+            </button>
+          </div>
         </form>
-      </Card>
+      </div>
     )
   }
 
   return (
     <>
-      <Card className="group flex flex-col h-full border-border/50 transition-all duration-300 overflow-hidden bg-card/50 backdrop-blur-xs shadow-none">
-        <Link href={`/topics/${topic.id}`} className="flex-1">
-          <CardHeader>
-            <div className="flex items-start justify-between gap-4">
-              <div className="space-y-1.5 min-w-0">
-                <CardTitle className="text-xl font-bold tracking-tight truncate transition-colors">
-                  {topic.title}
-                </CardTitle>
-                <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
-                  <Calendar className="h-3 w-3" />
-                  {new Date(topic.created_at).toLocaleDateString()}
-                </div>
-              </div>
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <BookOpen className="h-5 w-5" />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <CardDescription className="text-sm line-clamp-3 leading-relaxed text-muted-foreground/80">
-              {topic.description || 'Tidak ada deskripsi untuk topik ini.'}
-            </CardDescription>
-          </CardContent>
-        </Link>
-        <CardFooter className="flex items-center justify-between border-t bg-muted/20 py-3 mt-auto px-6">
-          <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10">
-            {subchapterCount} {subchapterCount === 1 ? 'sub-bab' : 'sub-bab'}
-          </Badge>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
+      <div className="py-6 border-b border-slate-100 dark:border-slate-800 group relative flex flex-col gap-3 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors -mx-4 px-4 rounded-xl sm:mx-0 sm:px-0 sm:hover:bg-transparent sm:rounded-none">
+        <div className="flex items-start justify-between gap-4">
+          <Link href={`/topics/${topic.id}`} className="block flex-1">
+            <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white leading-tight mb-1 pr-12">
+              {topic.title}
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
+              {topic.description || 'Tidak ada deskripsi'}
+            </p>
+          </Link>
+          
+          <div className="flex items-center gap-3 absolute right-4 sm:right-0 top-6">
+            <button
               onClick={() => setIsEditing(true)}
-              className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary cursor-pointer"
+              className="text-black dark:text-white hover:opacity-70 transition-opacity cursor-pointer p-1"
               title="Edit topik"
             >
               <Pencil className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
+            </button>
+            <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive cursor-pointer"
+              className="text-black dark:text-white hover:opacity-70 transition-opacity cursor-pointer p-1"
               title="Hapus topik"
             >
               <Trash2 className="h-4 w-4" />
-            </Button>
+            </button>
           </div>
-        </CardFooter>
-      </Card>
+        </div>
+
+        <Link href={`/topics/${topic.id}`} className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400">
+              {subchapterCount} {subchapterCount === 1 ? 'Sub-bab' : 'Sub-bab'}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400 font-medium tracking-wide">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="h-3.5 w-3.5" />
+              {new Date(topic.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            </div>
+            <span>•</span>
+            <div className="flex items-center gap-1.5">
+              <FileText className="h-3.5 w-3.5" />
+              Note
+            </div>
+          </div>
+        </Link>
+      </div>
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}

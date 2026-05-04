@@ -32,6 +32,13 @@ A knowledge base application built with Next.js, TypeScript, Tailwind CSS, and S
 - [x] Create API routes for Sub-chapter management
 - [x] Ensure order persistence in Supabase
 
+### Stage 6: Note Editor Feature ✅ Done
+- [x] Build premium `NoteEditor` component with manual save
+- [x] Implement "Unsaved changes" detection and feedback
+- [x] Create dynamic Note page with parallel data fetching
+- [x] Implement hierarchical breadcrumb navigation
+- [x] Ensure content persistence in Supabase
+
 ## Getting Started
 
 1.  **Clone the repository**

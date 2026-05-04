@@ -73,6 +73,12 @@ export default function SubchapterList({ initialSubchapters, topicId }: Subchapt
     }
   }
 
+  const [activeId, setActiveId] = useState<string | null>(null)
+
+  const handleToggle = (id: string) => {
+    setActiveId((prev) => (prev === id ? null : id))
+  }
+
   if (subchapters.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-800 py-12 text-center">
@@ -97,6 +103,8 @@ export default function SubchapterList({ initialSubchapters, topicId }: Subchapt
               key={subchapter.id}
               subchapter={subchapter}
               topicId={topicId}
+              isOpen={activeId === subchapter.id}
+              onToggle={() => handleToggle(subchapter.id)}
             />
           ))}
         </div>

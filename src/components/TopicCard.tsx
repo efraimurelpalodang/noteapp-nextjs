@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Topic } from '@/lib/types'
 import Link from 'next/link'
+import ConfirmDialog from './ConfirmDialog'
 
 interface TopicCardProps {
   topic: Topic
@@ -12,10 +13,10 @@ interface TopicCardProps {
 
 export default function TopicCard({ topic }: TopicCardProps) {
   const [isEditing, setIsEditing] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [title, setTitle] = useState(topic.title)
   const [description, setDescription] = useState(topic.description || '')
   const [loading, setLoading] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -39,8 +40,6 @@ export default function TopicCard({ topic }: TopicCardProps) {
   }
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this topic and all its subchapters?')) return
-
     setLoading(true)
     const { error } = await supabase.from('topics').delete().eq('id', topic.id)
 
@@ -48,6 +47,7 @@ export default function TopicCard({ topic }: TopicCardProps) {
       alert(error.message)
       setLoading(false)
     } else {
+      setShowDeleteConfirm(false)
       router.refresh()
     }
   }
@@ -75,14 +75,14 @@ export default function TopicCard({ topic }: TopicCardProps) {
             <button
               type="button"
               onClick={() => setIsEditing(false)}
-              className="text-sm font-medium text-slate-400 hover:text-white"
+              className="text-sm font-medium text-slate-400 hover:text-white px-2 py-1"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="rounded-lg bg-indigo-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500"
+              className="rounded-lg bg-indigo-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
             >
               {loading ? 'Saving...' : 'Save Changes'}
             </button>
@@ -119,7 +119,7 @@ export default function TopicCard({ topic }: TopicCardProps) {
             </svg>
           </button>
           <button
-            onClick={handleDelete}
+            onClick={() => setShowDeleteConfirm(true)}
             className="p-2 text-slate-400 hover:text-red-400 transition-colors"
             title="Delete topic"
           >
@@ -129,6 +129,15 @@ export default function TopicCard({ topic }: TopicCardProps) {
           </button>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="Delete Topic"
+        message={`Are you sure you want to delete "${topic.title}" and all its subchapters? This action cannot be undone.`}
+        confirmLabel={loading ? 'Deleting...' : 'Delete'}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </div>
   )
 }

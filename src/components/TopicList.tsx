@@ -1,137 +1,185 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { Search, FolderPlus, SlidersHorizontal } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Topic } from '@/lib/types'
-import TopicCard from '@/components/TopicCard'
-import AddTopicForm from '@/components/AddTopicForm'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
-  PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
+import { TopicCard } from '@/components/TopicCard'
+import { createBrowserClient } from '@supabase/ssr'
+import { toast } from 'sonner'
 
-interface TopicListProps {
-  initialTopics: Topic[]
-}
+const ITEMS_PER_PAGE = 5
 
-const ITEMS_PER_PAGE = 7
+export default function TopicList({ topics: initialTopics }: { topics: any[] }) {
+  const [topics, setTopics] = useState(initialTopics)
+  const [page, setPage] = useState(1)
+  const [showAddDialog, setShowAddDialog] = useState(false)
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [loading, setLoading] = useState(false)
 
-export default function TopicList({ initialTopics }: TopicListProps) {
-  const [query, setQuery] = useState('')
-  const [currentPage, setCurrentPage] = useState(1)
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
-  const filtered = useMemo(() => {
-    if (!query) return initialTopics
-    return initialTopics.filter(t => 
-      t.title.toLowerCase().includes(query.toLowerCase())
-    )
-  }, [initialTopics, query])
+  const [user, setUser] = useState<any>(null)
 
-  const paginated = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE
-    return filtered.slice(start, start + ITEMS_PER_PAGE)
-  }, [filtered, currentPage])
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => setUser(user))
+  }, [supabase.auth])
 
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE)
+  const totalPages = Math.ceil(topics.length / ITEMS_PER_PAGE)
+  const paginatedTopics = topics.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(e.target.value)
-    setCurrentPage(1) // Reset to page 1 on search
+  const handleAddTopic = async () => {
+    if (!title.trim() || !user) return
+    setLoading(true)
+    const toastId = toast.loading('Creating topic...')
+    const { data, error } = await supabase
+      .from('topics')
+      .insert({ 
+        title: title.trim(), 
+        description: description.trim() || null,
+        user_id: user.id
+      })
+      .select('*, subchapters(count)')
+      .single()
+    
+    setLoading(false)
+    toast.dismiss(toastId)
+    
+    if (error) {
+      console.error('Error creating topic:', error)
+      toast.error(`Failed to create topic: ${error.message}`)
+    } else {
+      toast.success('Topic created')
+      setTopics(prev => [data, ...prev])
+      setTitle('')
+      setDescription('')
+      setShowAddDialog(false)
+    }
+  }
+
+  const handleTopicDeleted = (topicId: string) => {
+    setTopics(prev => prev.filter(t => t.id !== topicId))
+    if (paginatedTopics.length === 1 && page > 1) {
+      setPage(p => p - 1)
+    }
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      {/* Search area is shrink-0 */}
-      <div className="shrink-0 pb-4">
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-slate-400" />
+    <div className="max-w-2xl mx-auto px-4 py-8">
+      {/* Topic list */}
+      <div className="flex flex-col gap-3">
+        {paginatedTopics.length === 0 ? (
+          <div className="text-center py-16 text-muted-foreground">
+            <p className="text-lg font-medium">No topics yet</p>
+            <p className="text-sm mt-1">Click the + button to create your first topic</p>
           </div>
-          <Input 
-            type="text" 
-            placeholder="Search research database..." 
-            className="pl-10 py-6 bg-transparent border-slate-200 dark:border-slate-800 rounded-xl text-base shadow-sm focus-visible:ring-1 focus-visible:ring-indigo-500"
-            value={query}
-            onChange={handleSearch}
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest pb-4 border-b border-slate-100 dark:border-slate-800 shrink-0 mt-4">
-          <span>Latest Entries ({filtered.length})</span>
-          <button className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 hover:opacity-80 transition-opacity">
-            <SlidersHorizontal className="h-4 w-4" />
-            Refine
-          </button>
-        </div>
-
-        {/* Scrollable card list */}
-        <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-800 overflow-y-auto flex-1 pt-4 pb-4">
-          {paginated.length > 0 ? (
-            paginated.map((topic) => (
-              <TopicCard key={topic.id} topic={topic} />
-            ))
-          ) : query ? (
-            <div className="col-span-full flex flex-col items-center justify-center py-24 text-center text-muted-foreground">
-              No topics found matching "{query}"
-            </div>
-          ) : (
-            <div className="col-span-full flex flex-col items-center justify-center rounded-[2rem] border-2 border-dashed border-muted bg-muted/5 py-24 px-6 text-center animate-in fade-in zoom-in duration-500">
-              <div className="rounded-2xl bg-muted/50 p-6 mb-6 shadow-inner transition-transform hover:scale-110">
-                <FolderPlus className="h-12 w-12 text-muted-foreground/60" />
-              </div>
-              <h3 className="text-2xl font-bold text-foreground">Rak Anda masih kosong</h3>
-              <p className="mt-2 text-muted-foreground max-w-sm mx-auto leading-relaxed">
-                Mulai bangun basis pengetahuan Anda dengan membuat topik belajar pertama Anda.
-              </p>
-              <div className="mt-8">
-                <AddTopicForm />
-              </div>
-            </div>
-          )}
-        </div>
+        ) : (
+          paginatedTopics.map(topic => (
+            <TopicCard
+              key={topic.id}
+              topic={topic}
+              onDeleted={() => handleTopicDeleted(topic.id)}
+            />
+          ))
+        )}
       </div>
 
       {/* Pagination */}
-      {filtered.length > ITEMS_PER_PAGE && (
-        <div className="mt-4 pb-8 shrink-0">
+      {totalPages > 1 && (
+        <div className="mt-8">
           <Pagination>
             <PaginationContent>
               <PaginationItem>
-                <PaginationPrevious 
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  className={currentPage <= 1 ? 'pointer-events-none opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => { e.preventDefault(); setPage(p => Math.max(1, p - 1)) }}
+                  aria-disabled={page === 1}
+                  className={page === 1 ? 'pointer-events-none opacity-50' : ''}
                 />
               </PaginationItem>
-              
-              {Array.from({ length: totalPages }).map((_, i) => (
-                <PaginationItem key={i}>
-                  <PaginationLink 
-                    onClick={() => setCurrentPage(i + 1)}
-                    isActive={currentPage === i + 1}
-                    className="cursor-pointer"
-                  >
-                    {i + 1}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
-
               <PaginationItem>
-                <PaginationNext 
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  className={currentPage >= totalPages ? 'pointer-events-none opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                <span className="px-4 text-sm">Page {page} of {totalPages}</span>
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => { e.preventDefault(); setPage(p => Math.min(totalPages, p + 1)) }}
+                  aria-disabled={page === totalPages}
+                  className={page === totalPages ? 'pointer-events-none opacity-50' : ''}
                 />
               </PaginationItem>
             </PaginationContent>
           </Pagination>
         </div>
       )}
+
+      {/* FAB */}
+      <Button
+        className="fixed bottom-6 right-6 h-14 w-14 rounded-2xl shadow-lg z-50"
+        size="icon"
+        onClick={() => setShowAddDialog(true)}
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
+
+      {/* Add Topic Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>New Topic</DialogTitle>
+            <DialogDescription className="sr-only">
+              Create a new topic to organize your notes.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-2">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="topic-title">Title</Label>
+              <Input
+                id="topic-title"
+                placeholder="e.g. Artificial Intelligence"
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleAddTopic()}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="topic-description">Description</Label>
+              <Textarea
+                id="topic-description"
+                placeholder="Short description (optional)"
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddDialog(false)}>Cancel</Button>
+            <Button onClick={handleAddTopic} disabled={loading || !title.trim()}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

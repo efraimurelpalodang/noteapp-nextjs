@@ -1,136 +1,115 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useEffect, useState, useRef } from 'react'
-import { User } from '@supabase/supabase-js'
-import ConfirmDialog from './ConfirmDialog'
-import ThemeToggle from './ThemeToggle'
+import { Search, Sun, Moon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { LogOut } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
-import { cn } from '@/lib/utils'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { useState, useEffect } from 'react'
+import { createBrowserClient } from '@supabase/ssr'
+import { useRouter } from 'next/navigation'
+import { useTheme } from 'next-themes'
 
 export default function Navbar() {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
-  const [isVisible, setIsVisible] = useState(true)
-  const [lastScrollY, setLastScrollY] = useState(0)
-  const supabase = createClient()
+  const [user, setUser] = useState<any>(null)
+  const [mounted, setMounted] = useState(false)
   const router = useRouter()
+  const { theme, setTheme } = useTheme()
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-      setLoading(false)
-    }
-
-    getUser()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [supabase])
-
-  // Hide/Show navbar on scroll
-  useEffect(() => {
-    const controlNavbar = () => {
-      const currentScrollY = window.scrollY
-      
-      if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        // Scrolling down
-        setIsVisible(false)
-      } else {
-        // Scrolling up
-        setIsVisible(true)
-      }
-      setLastScrollY(currentScrollY)
-    }
-
-    window.addEventListener('scroll', controlNavbar)
-    return () => window.removeEventListener('scroll', controlNavbar)
-  }, [lastScrollY])
+    setMounted(true)
+    supabase.auth.getUser().then(({ data: { user } }) => setUser(user))
+  }, [])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    setShowLogoutConfirm(false)
     router.push('/login')
-    router.refresh()
+  }
+
+  const openCommandMenu = () => {
+    window.dispatchEvent(new Event('open-command-menu'))
   }
 
   return (
-    <>
-      <nav className={cn(
-        "fixed top-0 z-50 w-full border-b bg-background/80 backdrop-blur-lg transition-transform duration-300",
-        isVisible ? "translate-y-0" : "-translate-y-full"
-      )}>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center">
-              <Link href="/" className="flex items-center gap-2 group">
-                <span className="text-xl font-black tracking-tighter text-foreground">
-                  StudyNote
-                </span>
-              </Link>
-            </div>
+    <nav className="fixed top-0 left-0 right-0 h-16 border-b bg-background/80 backdrop-blur-sm z-40 flex items-center justify-between px-6">
+      <Link href="/" className="font-bold text-xl tracking-tight">STUDYNOTE</Link>
 
-            <div className="flex items-center gap-2 sm:gap-4">
-              <ThemeToggle />
-              
-              {!loading && (
-                <>
-                  <Separator orientation="vertical" className="h-6 mx-1" />
-                  {user ? (
-                    <div className="flex items-center gap-3">
-                      <div className="hidden flex-col items-end sm:flex">
-                        <span className="text-xs font-semibold text-foreground">
-                          {user.email?.split('@')[0]}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground truncate max-w-[120px]">
-                          {user.email}
-                        </span>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setShowLogoutConfirm(true)}
-                        className="rounded-full hover:bg-destructive/10 hover:text-destructive cursor-pointer transition-colors"
-                        title="Keluar"
-                      >
-                        <LogOut className="h-5 w-5" />
-                        <span className="sr-only">Keluar</span>
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" asChild className="cursor-pointer">
-                        <Link href="/login">Masuk</Link>
-                      </Button>
-                      <Button asChild className="cursor-pointer">
-                        <Link href="/register">Daftar</Link>
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <div className="flex items-center gap-1">
+        {/* Search */}
+        <Button variant="ghost" size="icon" onClick={openCommandMenu}>
+          <Search className="h-5 w-5" />
+        </Button>
 
-      <ConfirmDialog
-        isOpen={showLogoutConfirm}
-        title="Keluar Akun"
-        message="Apakah Anda yakin ingin keluar dari akun StudyNote? Anda harus masuk kembali untuk mengakses catatan Anda."
-        confirmLabel="Keluar"
-        onConfirm={handleLogout}
-        onCancel={() => setShowLogoutConfirm(false)}
-      />
-    </>
+        {/* Theme Toggle */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          aria-label="Toggle theme"
+        >
+          {mounted ? (
+            theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />
+          ) : (
+            <Moon className="h-5 w-5" />
+          )}
+        </Button>
+
+        {/* Avatar Popover */}
+        {user && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user.user_metadata?.avatar_url} />
+                  <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
+                </Avatar>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64" align="end">
+              <div className="flex flex-col gap-2">
+                <p className="font-semibold">{user.user_metadata?.full_name || 'User'}</p>
+                <p className="text-sm text-muted-foreground">{user.email}</p>
+                <Separator />
+                <Button variant="destructive" onClick={() => setShowLogoutConfirm(true)}>
+                  Log Out
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
+      </div>
+
+      <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Log Out</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to log out?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLogout}>Log Out</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </nav>
   )
 }

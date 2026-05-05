@@ -19,10 +19,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn(
-        "min-h-screen bg-background font-sans antialiased transition-colors duration-300",
-        geist.variable
-      )}>
+      <body 
+        className={cn(
+          "min-h-screen bg-background font-sans antialiased transition-colors duration-300",
+          geist.variable
+        )}
+        suppressHydrationWarning
+      >
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

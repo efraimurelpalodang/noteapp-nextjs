@@ -39,6 +39,13 @@ A knowledge base application built with Next.js, TypeScript, Tailwind CSS, and S
 - [x] Implement hierarchical breadcrumb navigation
 - [x] Ensure content persistence in Supabase
 
+### Stage 9: Topic Detail Page Rebuild ✅ Done
+- [x] Dynamic navbar with back arrow and truncated title
+- [x] Topic description header below navbar
+- [x] Accordion-based subchapter list with single-item focus
+- [x] Full CRUD for sub-chapters via Dialogs and AlertDialog
+- [x] Client-side pagination (7 items per page)
+
 ## Getting Started
 
 1.  **Clone the repository**

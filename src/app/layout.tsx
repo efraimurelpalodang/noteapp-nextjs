@@ -31,10 +31,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <TooltipProvider>
-            <Navbar />
-            <main className="pt-16 min-h-screen">
-              {children}
-            </main>
+            {children}
           </TooltipProvider>
         </ThemeProvider>
       </body>

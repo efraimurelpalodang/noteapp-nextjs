@@ -25,10 +25,10 @@ export default async function TopicDetailPage({
   const subchapters = topic.subchapters || []
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 sm:py-16">
-      <div className="flex flex-col gap-10">
+    <div className="mx-auto max-w-5xl px-4 pt-8 sm:px-6 lg:px-8 sm:pt-16 h-[calc(100vh-64px)] flex flex-col pb-4">
+      <div className="flex flex-col gap-10 flex-1 overflow-hidden">
         {/* Header Section with Breadcrumbs beside Title using justify-between */}
-        <div className="space-y-4">
+        <div className="space-y-4 shrink-0">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-baseline sm:justify-between">
             <h1 className="text-4xl font-black text-foreground tracking-tight sm:text-5xl">
               {topic.title}
@@ -52,11 +52,6 @@ export default async function TopicDetailPage({
         {/* Search & List Wrapper */}
         <TopicSearchWrapper subchapters={subchapters} topicId={topicId} />
 
-        {/* Footer Info */}
-        <div className="pt-8 flex items-center justify-center gap-2 text-muted-foreground/30 border-t">
-          <Info className="h-4 w-4" />
-          <span className="text-xs font-bold uppercase tracking-tighter">Database Penelitian StudyNote • 2026</span>
-        </div>
       </div>
     </div>
   )

@@ -33,10 +33,10 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ to
   return (
     <>
       <DetailNavbar title={topic.title} />
-      <main className="pt-16 px-4 pb-24 max-w-2xl mx-auto">
+      <main className="pt-5 px-4 pb-24 max-w-2xl mx-auto">
         {/* Description section below navbar */}
         {topic.description && (
-          <p className="text-muted-foreground italic text-sm mt-6 mb-6 leading-relaxed">
+          <p className="text-muted-foreground italic text-lg my-6 leading-relaxed">
             {topic.description}
           </p>
         )}

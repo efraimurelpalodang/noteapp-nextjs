@@ -210,7 +210,7 @@ export default function SubchapterList({ topic, subchapters: initialSubs }: Prop
       <Accordion type="single" collapsible className="w-full">
         {paginatedSubs.map(sub => (
           <AccordionItem key={sub.id} value={sub.id} className="border-b border-muted py-1">
-            <AccordionTrigger className="w-full text-left font-medium text-lg py-4 transition-all hover:underline underline-offset-4 decoration-primary/30 cursor-pointer">
+            <AccordionTrigger className="w-full text-left font-medium text-lg py-4 transition-all hover:underline underline-offset-4 decoration-primary/30 cursor-pointer capitalize">
               {sub.title}
             </AccordionTrigger>
 

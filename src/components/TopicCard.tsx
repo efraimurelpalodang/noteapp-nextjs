@@ -98,7 +98,7 @@ export function TopicCard({ topic, onDeleted }: { topic: any; onDeleted: () => v
           <div className="flex items-center gap-3">
             {/* Text content */}
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-base leading-snug line-clamp-1">
+              <p className="font-semibold text-base leading-snug line-clamp-1 capitalize">
                 {topic.title}
               </p>
               {topic.description && (
@@ -141,7 +141,6 @@ export function TopicCard({ topic, onDeleted }: { topic: any; onDeleted: () => v
                   </Button>
                 </PopoverContent>
               </Popover>
-              <ChevronRight className="h-4 w-4 text-zinc-400 dark:text-zinc-500" />
             </div>
           </div>
         </CardContent>

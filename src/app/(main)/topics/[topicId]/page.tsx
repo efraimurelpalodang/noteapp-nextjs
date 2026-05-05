@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import SubchapterList from '@/components/SubchapterList'
+import DetailNavbar from '@/components/DetailNavbar'
 import { notFound } from 'next/navigation'
 
 export async function generateMetadata({ params }: { params: Promise<{ topicId: string }> }) {
@@ -29,5 +30,18 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ to
     .eq('topic_id', topicId)
     .order('order', { ascending: true })
 
-  return <SubchapterList topic={topic} subchapters={subchapters ?? []} />
+  return (
+    <>
+      <DetailNavbar title={topic.title} />
+      <main className="pt-16 px-4 pb-24 max-w-2xl mx-auto">
+        {/* Description section below navbar */}
+        {topic.description && (
+          <p className="text-muted-foreground italic text-sm mt-6 mb-6 leading-relaxed">
+            {topic.description}
+          </p>
+        )}
+        <SubchapterList topic={topic} subchapters={subchapters ?? []} />
+      </main>
+    </>
+  )
 }
